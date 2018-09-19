@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>htmlToExcel</title>
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    
+        .htmlList{
+            width: 32%;
+            float: left;
+            border: 1px solid #999;
+            margin-right: 1%
+        }
+        .glyphicon-minus,.glyphicon-plus{
+            width: 30px;
+        }
+    </style>
+</head>
+<body style="padding:10px;">
+    <div class="text-center">
+        <form action="/upload" method="post"  enctype="multipart/form-data" id="form">
+            <div class="form-group" style="display:inline-block">
+              <input type="file" name="myfile" multiple/>
+            </div>
+            <input type="button" value="submit"  class="btn btn-info" id ="btn" />
+        </form>
+        <div id="htmlConment"></div>
+        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="  crossorigin="anonymous"></script>
+    </div>
+    <script>
+         $("#btn").click(function(){
+            $.ajax({
+                    url:  "/upload",
+                    type: 'POST',
+                    cache: false,
+                    data: new FormData($('#form')[0]),
+                    processData: false,
+                    contentType: false,
+                    dataType:"text",
+                    beforeSend: function(){
+                       
+                    },
+                    success : function(data) {
+                        $("#htmlConment").html('');
+                        data=JSON.parse(data);
+                    
+                        for(var k = 0;k<data.data.length;k++){
+                            $("#htmlConment").append('<div class="htmlList">'+data.data[k]+'</div>');
+                        }
+                       
+                        $("h2").append('<span class="glyphicon glyphicon-minus margin-left-20" aria-hidden="true"></span>')
+                        $(".glyphicon").click(function(){
+                          
+                        });
+                        $(document).on("click",".glyphicon-plus",function(){
+                            $(this).parents("h2").next("table").show();
+                            $(this).removeClass("glyphicon-plus").addClass("glyphicon-minus");
+                            
+                        })
+                        $(document).on("click",".glyphicon-minus",function(){
+                            $(this).parents("h2").next("table").hide();
+                            $(this).removeClass("glyphicon-minus").addClass("glyphicon-plus")
+                        })
+
+                        $(".glyphicon-minus").click();
+                        // document.getElementById("htmlConment").innerHTML=xhr.responseText
+                    }
+                });
+         })
+        
+
+          //     //FormData 这个对象可以用来对表单中的数据进行封装
+        //     //使用FormData来对表单中的数据进行包装
+        //     var fd = new FormData(document.getElementById("form"));
+        //  
+        //     //创建一个xhr对象
+        //     var xhr = new XMLHttpRequest();
+        //  
+        //     //设置请求的地址
+        //     xhr.open("post" , "/upload");
+        //  
+        //     //发送请求
+        //     xhr.send(fd);
+        //  
+        //     //接收响应
+        //     xhr.onreadystatechange = function () {
+        //       if(xhr.readyState == 4 && xhr.status == 200){
+        //         document.getElementById("htmlConment").innerHTML=xhr.responseText
+        //       }
+        //     };
+        //  
+        //     //取消默认行为
+        //     return false;
+         
+        </script>
+</body>
+</html>
