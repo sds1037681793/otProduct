@@ -17,21 +17,42 @@
         .glyphicon-minus,.glyphicon-plus{
             width: 30px;
         }
+        .listTitle{
+            font-size: 24px;
+            padding:20px 0 0 0
+        }
+        .listContent table{
+            margin:  0 auto;
+        }
     </style>
 </head>
 <body style="padding:10px;">
+    <h1 style="text-align: center">
+        html转EXCEL小工具
+    </h1>
     <div class="text-center">
         <form action="/upload" method="post"  enctype="multipart/form-data" id="form">
             <div class="form-group" style="display:inline-block">
               <input type="file" name="myfile" multiple/>
             </div>
-            <input type="button" value="submit"  class="btn btn-info" id ="btn" />
+            <input type="button" value="上传文件"  class="btn btn-info" id ="btn" />
         </form>
         <div id="htmlConment"></div>
         <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="  crossorigin="anonymous"></script>
     </div>
     <script>
-         $("#btn").click(function(){
+        $(function(){
+              $(document).on("click",".glyphicon-plus",function(){
+                            $(this).parents("h2").next("table").show();
+                            $(this).removeClass("glyphicon-plus").addClass("glyphicon-minus");
+                            
+                        })
+             $(document).on("click",".glyphicon-minus",function(){
+                            $(this).parents("h2").next("table").hide();
+                            $(this).removeClass("glyphicon-minus").addClass("glyphicon-plus")
+                        })
+
+             $("#btn").click(function(){
             $.ajax({
                     url:  "/upload",
                     type: 'POST',
@@ -39,37 +60,76 @@
                     data: new FormData($('#form')[0]),
                     processData: false,
                     contentType: false,
-                    dataType:"text",
+                    dataType:"JSON",
                     beforeSend: function(){
                        
                     },
                     success : function(data) {
                         $("#htmlConment").html('');
-                        data=JSON.parse(data);
-                    
+            
                         for(var k = 0;k<data.data.length;k++){
-                            $("#htmlConment").append('<div class="htmlList">'+data.data[k]+'</div>');
+                            $("#htmlConment").append('<div class="htmlList">'
+                                +'<div class="listTitle">上传文件：'+data.data[k].name
+                                +'<input type="button" value="转为excel并下载" onclick="down(\''+data.data[k].name+'\',this)"  class="btn btn-info " style="margin-left:10px" id="btn"></div>'
+                                +'<div class="listContent">'+data.data[k].list+'</div>'
+                                +'</div>');
                         }
                        
                         $("h2").append('<span class="glyphicon glyphicon-minus margin-left-20" aria-hidden="true"></span>')
                         $(".glyphicon").click(function(){
                           
                         });
-                        $(document).on("click",".glyphicon-plus",function(){
-                            $(this).parents("h2").next("table").show();
-                            $(this).removeClass("glyphicon-plus").addClass("glyphicon-minus");
-                            
-                        })
-                        $(document).on("click",".glyphicon-minus",function(){
-                            $(this).parents("h2").next("table").hide();
-                            $(this).removeClass("glyphicon-minus").addClass("glyphicon-plus")
-                        })
-
+                       
                         $(".glyphicon-minus").click();
                         // document.getElementById("htmlConment").innerHTML=xhr.responseText
                     }
                 });
          })
+        })
+         
+        //下载excel
+        function down(name,obj){
+          var title =   $(obj).parents(".listTitle").next(".listContent").children("h2");
+          var tables =   $(obj).parents(".listTitle").next(".listContent").children("table");
+         
+          console.log(title)
+         var data = [];
+            title.each(function(i,k){
+                console.log($(this).next("table"))
+                 var sheet = {};
+                 sheet.text= [];
+            
+                 sheet.title =$(this).text();
+                 $(this).next("table").find("tr").each(function(){
+                    var td = {};
+                    td.content = [];
+                    $(this).children("th").each(function(){
+                        var tdContent = {};
+                        tdContent.colspan=!!$(this).attr("colspan")?$(this).attr("colspan"):"1";
+                        tdContent.content = $(this).html()
+                        td.content.push(tdContent)
+                    })
+                    $(this).children("td").each(function(){
+                        var tdContent = {};
+                        tdContent.colspan=!!$(this).attr("colspan")?$(this).attr("colspan"):"1";
+                        tdContent.content = $(this).html()
+                        td.content.push(tdContent)
+                    })        
+                    sheet.text.push(td)
+                 })
+                 data.push(sheet)
+            })
+            console.log(data)
+            $.ajax({
+                    url:  "/api/saveExcelData",
+                    type: 'POST',
+                    data: {data:JSON.stringify(data)},
+                    dataType:"JSON",
+                    success : function(data) {
+                            window.location = "/api/exportExcel/" + name
+                    }
+                });
+            }
         
 
           //     //FormData 这个对象可以用来对表单中的数据进行封装
